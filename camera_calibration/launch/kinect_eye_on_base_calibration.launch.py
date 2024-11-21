@@ -10,7 +10,7 @@ def generate_launch_description():
     # Déclaration des arguments
     namespace_prefix_arg = DeclareLaunchArgument("namespace_prefix", default_value="kinect_calib")
     marker_id_arg = DeclareLaunchArgument("marker_id", default_value="1")
-    marker_size_arg = DeclareLaunchArgument("marker_size", default_value="0.1")
+    marker_size_arg = DeclareLaunchArgument("marker_size", default_value="0.096")
     eye_on_hand_arg = DeclareLaunchArgument("eye_on_hand", default_value="false")
     marker_frame_arg = DeclareLaunchArgument("marker_frame", default_value="aruco_marker")
     ref_frame_arg = DeclareLaunchArgument("ref_frame", default_value="base_link")
@@ -33,8 +33,8 @@ def generate_launch_description():
             os.path.join(get_package_share_directory("dsr_bringup2"), "launch", "dsr_bringup2_rviz.launch.py")
         ),
         launch_arguments={
-            "mode": "virtual",
-            "host": "127.0.0.1",
+            "mode": "real",
+            "host": "192.168.137.100",
             "port": "12345",
             "model": "m1013"
         }.items()
@@ -78,7 +78,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            'eye_on_hand': 'false',
+            'calibration_type': 'eye-on-base',
             'namespace_prefix': LaunchConfiguration('namespace_prefix'),
             'freehand_robot_movement': 'true',
             'robot_base_frame': 'base_link',

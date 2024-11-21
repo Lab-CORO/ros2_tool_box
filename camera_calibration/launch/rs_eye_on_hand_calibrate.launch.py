@@ -1,61 +1,54 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
-
+from launch_ros.actions import Node
 import os
 
 def generate_launch_description():
     # Déclaration des arguments de lancement
-    namespace_prefix_arg = DeclareLaunchArgument(
-        'namespace_prefix', default_value='rs_calib',
-        description='Prefix namespace for the calibration process'
-    )
-    markerId_arg = DeclareLaunchArgument('markerId', default_value='1', description='ID of the marker')
-    markerSize_arg = DeclareLaunchArgument('markerSize', default_value='0.1', description='Marker size in meters')
-    eye_on_hand_arg = DeclareLaunchArgument("eye_on_hand", default_value="true")
-    marker_frame_arg = DeclareLaunchArgument('marker_frame', default_value='aruco_marker')
-    ref_frame_arg = DeclareLaunchArgument('ref_frame', default_value='camera_link')
-    corner_refinement_arg = DeclareLaunchArgument('corner_refinement', default_value='LINES')
-    camera_frame_arg = DeclareLaunchArgument('camera_frame', default_value='camera_color_frame')
-    camera_image_topic_arg = DeclareLaunchArgument('camera_image_topic', default_value='/camera/camera/depth/image_rect_raw')
-    camera_info_topic_arg = DeclareLaunchArgument('camera_info_topic', default_value='/camera/camera/color/camera_info')
 
-    # Lancement du robot avec l'IP
-    dsr_bringup2_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory('dsr_bringup2'), 'launch', 'dsr_bringup2_rviz.launch.py'
-            )
-        ),
-        launch_arguments={
-            'mode': 'virtual',
-            'host': '127.0.0.1',
-            'port': '12345',
-            'model': 'm1013'
-        }.items()
-    )
+    namespace_prefix_arg = DeclareLaunchArgument("namespace_prefix", default_value="rs_calib")
+    marker_id_arg = DeclareLaunchArgument("marker_id", default_value="1")
+    marker_size_arg = DeclareLaunchArgument("marker_size", default_value="0.096")
+    eye_on_hand_arg = DeclareLaunchArgument("eye_on_hand", default_value="true")
+    marker_frame_arg = DeclareLaunchArgument("marker_frame", default_value="aruco_marker")
+    ref_frame_arg = DeclareLaunchArgument("ref_frame", default_value="base_link")
+    corner_refinement_arg = DeclareLaunchArgument("corner_refinement", default_value="LINES")
+    camera_frame_arg = DeclareLaunchArgument("camera_frame", default_value="camera_color_optical_frame")
+    camera_image_topic_arg = DeclareLaunchArgument("camera_image_topic", default_value="/camera/camera/color/image_rect_raw")
+    camera_info_topic_arg = DeclareLaunchArgument("camera_info_topic", default_value="/camera/camera/color/camera_info")
+
+
 
     # Lancer le driver ROS de realsense
     realsense_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory('realsense2_camera'), 'launch', 'rs_launch.py'
-            )
+            os.path.join(get_package_share_directory("realsense2_camera"), "launch", "rs_launch.py")
         )
     )
+
+    # Chemin des fichiers de lancement pour d'autres packages
+    dsr_bringup2_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory("dsr_bringup2"), "launch", "dsr_bringup2_rviz.launch.py")
+        ),
+        launch_arguments={
+            "mode": "real",
+            "host": "192.168.137.100",
+            "port": "12345",
+            "model": "m1013"
+        }.items()
+    )
+
+
 
     # Configuration de l’Aruco
     aruco_node = Node(
         package="ros2_aruco",
         executable="aruco_node",
         name="ros2_aruco",
-        remappings=[
-            ("/camera/camera/color/camera_info", LaunchConfiguration("camera_info_topic")),
-            ("/camera/camera/depth/image_rect_raw", LaunchConfiguration("camera_image_topic"))
-        ],
         parameters=[
             {"image_is_rectified": True},
             {"marker_size": LaunchConfiguration("marker_size")},
@@ -64,7 +57,9 @@ def generate_launch_description():
             {"reference_frame": LaunchConfiguration("ref_frame")},
             {"camera_frame": LaunchConfiguration("camera_frame")},
             {"marker_frame": LaunchConfiguration("marker_frame")},
-            {"corner_refinement": LaunchConfiguration("corner_refinement")}
+            {"corner_refinement": LaunchConfiguration("corner_refinement")},
+            {"camera_info_topic": LaunchConfiguration("camera_info_topic")},
+            {"image_topic": LaunchConfiguration("camera_image_topic")}
         ]
     )
 
@@ -82,24 +77,24 @@ def generate_launch_description():
     handeye_calibration_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
-                get_package_share_directory('hand_eye_calibration'), 'launch', 'calibration.launch.py'
+                get_package_share_directory('hand_eye_calibration'), 'calibration.launch.py'
             )
         ),
         launch_arguments={
-            'eye_on_hand': LaunchConfiguration("eye_on_hand"),
+            'calibration_type': 'eye-in-hand',
             'namespace_prefix': LaunchConfiguration('namespace_prefix'),
             'freehand_robot_movement': 'true',
-            'robot_base_frame': LaunchDescription("ref_frame"),
+            'robot_base_frame': 'base_link',
             'robot_effector_frame': 'link_6',
-            'tracking_base_frame': LaunchConfiguration("camera_frame"),
-            'tracking_marker_frame': LaunchConfiguration("marker_frame")
+            'tracking_base_frame': 'camera_color_optical_frame',
+            'tracking_marker_frame': 'aruco_marker'
         }.items()
     )
 
     return LaunchDescription([
         namespace_prefix_arg,
-        markerId_arg,
-        markerSize_arg,
+        marker_id_arg,
+        marker_size_arg,
         eye_on_hand_arg,
         marker_frame_arg,
         ref_frame_arg,
