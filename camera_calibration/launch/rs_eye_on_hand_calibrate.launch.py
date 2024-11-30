@@ -22,7 +22,7 @@ def generate_launch_description():
 
 
 
-    # Lancer le driver ROS de realsense
+    #Lancer le driver ROS de realsense
     realsense_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory("realsense2_camera"), "launch", "rs_launch.py")
@@ -86,11 +86,12 @@ def generate_launch_description():
             'freehand_robot_movement': 'true',
             'robot_base_frame': 'base_link',
             'robot_effector_frame': 'link_6',
-            'tracking_base_frame': 'camera_color_optical_frame',
+            'tracking_base_frame': LaunchConfiguration("camera_frame"),
             'tracking_marker_frame': 'aruco_marker'
         }.items()
     )
 
+   
     return LaunchDescription([
         namespace_prefix_arg,
         marker_id_arg,

@@ -16,7 +16,7 @@ def generate_launch_description():
     ref_frame_arg = DeclareLaunchArgument("ref_frame", default_value="base_link")
     corner_refinement_arg = DeclareLaunchArgument("corner_refinement", default_value="LINES")
     camera_frame_arg = DeclareLaunchArgument("camera_frame", default_value="rgb_camera_link")
-    camera_image_topic_arg = DeclareLaunchArgument("camera_image_topic", default_value="/rgb/image_raw")
+    camera_image_topic_arg = DeclareLaunchArgument("camera_image_topic", default_value="/rgb/image_rect_raw")
     camera_info_topic_arg = DeclareLaunchArgument("camera_info_topic", default_value="/rgb/camera_info")
 
     
@@ -83,9 +83,27 @@ def generate_launch_description():
             'freehand_robot_movement': 'true',
             'robot_base_frame': 'base_link',
             'robot_effector_frame': 'link_6',
-            'tracking_base_frame': 'rgb_camera_link',
+            'tracking_base_frame': 'camera_base',
             'tracking_marker_frame': 'aruco_marker'
         }.items()
+    )
+
+    # Transformation de 'base_link' vers 'camera_base' (caméra Azure Kinect)
+    static_transform_publisher_base_link_to_camera_base = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_transform_publisher_base_link_to_camera_base',
+        arguments=[
+            '-0.2062',  # x
+            '-0.2086',  # y
+            '0.8843',   # z
+            '0.3666',      # yaw    (en radians)
+            '0.7854',   # pitch (en radians)
+            '0.2668',        # roll   (en radians)
+            'base_link',
+            'camera_base'
+        ],
+        output='log'
     )
 
     return LaunchDescription([
@@ -103,5 +121,6 @@ def generate_launch_description():
         azure_kinect_driver_launch,
         aruco_node,
         pose_array_to_tf_node,
-        handeye_calibration_launch
+        handeye_calibration_launch,
+        static_transform_publisher_base_link_to_camera_base
     ])
