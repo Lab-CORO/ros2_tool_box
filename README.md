@@ -11,7 +11,7 @@ To proceed to the calibration of the cameras, you will need a few packages, thre
 
 The two additionnal packages to install are :
 
-- [Aruco marker](https://github.com/JMU-ROBOTICS-VIVA/ros2_aruco)
+- [ros2_markertracker](https://github.com/Veilkrand/ros2_markertracker)
 - [ROS2 Hand eye calibration](https://github.com/giuschio/ros2_handeye_calibration)
 
 ## Steps to calibrate the cameras
@@ -53,7 +53,16 @@ It is recommended to take a least 15 triggers for a better calibration accuracy.
 
 When the calibration is completed, the terminal should output the transform generated between the robot and the camera, both in quaternion and Euler format.
 
-Take the Euler values and put them into the corresponding **X_config.yaml file**
+Take the quaternion values and put them into the corresponding **X_tf_computation_node.py** (X being rs or kinect) that can be found in the package of the camera calibration :
+```python
+self.cam_to_color_tf.transform.translation.x = # X translation values 
+self.cam_to_color_tf.transform.translation.y = # Y translation values
+self.cam_to_color_tf.transform.translation.z = # Z translation values
+self.cam_to_color_tf.transform.rotation.x = # X rotation values
+self.cam_to_color_tf.transform.rotation.y = # Y rotation values
+self.cam_to_color_tf.transform.rotation.z = # Z rotation values
+self.cam_to_color_tf.transform.rotation.w = # W rotation values
+```
 
 ## Tips for accuracy
 
