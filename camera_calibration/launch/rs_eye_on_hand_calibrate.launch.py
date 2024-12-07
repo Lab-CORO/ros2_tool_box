@@ -42,36 +42,21 @@ def generate_launch_description():
         }.items()
     )
 
-
-
-    # Configuration de l’Aruco
-    aruco_node = Node(
-        package="ros2_aruco",
-        executable="aruco_node",
-        name="ros2_aruco",
-        parameters=[
-            {"image_is_rectified": True},
-            {"marker_size": LaunchConfiguration("marker_size")},
-            {"aruco_dictionary_id": "DICT_4X4_250"},
-            {"marker_id": LaunchConfiguration("marker_id")},
-            {"reference_frame": LaunchConfiguration("ref_frame")},
-            {"camera_frame": LaunchConfiguration("camera_frame")},
-            {"marker_frame": LaunchConfiguration("marker_frame")},
-            {"corner_refinement": LaunchConfiguration("corner_refinement")},
-            {"camera_info_topic": LaunchConfiguration("camera_info_topic")},
-            {"image_topic": LaunchConfiguration("camera_image_topic")}
-        ]
-    )
-
-    pose_array_to_tf_node = Node(
-        package='camera_calibration',
-        executable='pose_array_to_tf',
-        name='pose_array_to_tf',
-        parameters=[
-            {'subscription_pose_array': 'aruco_poses'},
-            {'parent_frame_id': LaunchConfiguration("camera_frame")},
-            {'publisher_frame_id': LaunchConfiguration("marker_frame")}
-        ]
+    #Nouveau nœud pour la détection des marqueurs fiduciaires
+    markertracker_node = Node(
+        package='ros2_markertracker',
+        executable='markertracker_node',
+        output="screen",
+        namespace="/ros2_markertracker",
+        parameters=[{
+            "input_image_topic": "/camera/camera/color/image_rect_raw",
+            "publish_topic_image_result": True,
+            "path_to_camera_file": '/home/coro/ros2_ws/src/tool_box/camera_calibration/config/rs.yaml',
+            "marker_length": 9.6,
+            "aruco_dictionary_id": "DICT_4X4_250",
+            "camera_frame_id": "camera_color_optical_frame",
+            "ignore_marker_ids_array": 17
+        }]
     )
 
     handeye_calibration_launch = IncludeLaunchDescription(
@@ -87,7 +72,7 @@ def generate_launch_description():
             'robot_base_frame': 'base_link',
             'robot_effector_frame': 'link_6',
             'tracking_base_frame': LaunchConfiguration("camera_frame"),
-            'tracking_marker_frame': 'aruco_marker'
+            'tracking_marker_frame': 'marker'
         }.items()
     )
 
@@ -105,7 +90,6 @@ def generate_launch_description():
         camera_info_topic_arg,
         dsr_bringup2_launch,
         realsense_launch,
-        aruco_node,
-        pose_array_to_tf_node,
+        markertracker_node,
         handeye_calibration_launch
     ])

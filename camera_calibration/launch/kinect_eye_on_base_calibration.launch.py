@@ -26,6 +26,18 @@ def generate_launch_description():
             os.path.join(get_package_share_directory("azure_kinect_ros_driver"), "launch", "driver.launch.py")
         )
     )
+    
+    # Rectify node (Kinect 2D image)
+    rectify_node = Node(
+        package="image_proc",
+        executable="rectify_node",
+        name="rectify_rgb",
+        remappings=[
+            ("image", "rgb/image_raw"),
+            ("image_rect", "rgb/image_rect_raw"),
+            ("camera_info", "/rgb/camera_info")
+        ]
+    )
 
     # Chemin des fichiers de lancement pour d'autres packages
     dsr_bringup2_launch = IncludeLaunchDescription(
@@ -40,35 +52,21 @@ def generate_launch_description():
         }.items()
     )
 
-
-    # Configuration de l’Aruco
-    aruco_node = Node(
-        package="ros2_aruco",
-        executable="aruco_node",
-        name="ros2_aruco",
-        parameters=[
-            {"image_is_rectified": True},
-            {"marker_size": LaunchConfiguration("marker_size")},
-            {"aruco_dictionary_id": "DICT_4X4_250"},
-            {"marker_id": LaunchConfiguration("marker_id")},
-            {"reference_frame": LaunchConfiguration("ref_frame")},
-            {"camera_frame": LaunchConfiguration("camera_frame")},
-            {"marker_frame": LaunchConfiguration("marker_frame")},
-            {"corner_refinement": LaunchConfiguration("corner_refinement")},
-            {"camera_info_topic": LaunchConfiguration("camera_info_topic")},
-            {"image_topic": LaunchConfiguration("camera_image_topic")}
-        ]
-    )
-
-    pose_array_to_tf_node = Node(
-        package='camera_calibration',
-        executable='pose_array_to_tf',
-        name='pose_array_to_tf',
-        parameters=[
-            {'subscription_pose_array': 'aruco_poses'},
-            {'parent_frame_id': LaunchConfiguration("camera_frame")},
-            {'publisher_frame_id': LaunchConfiguration("marker_frame")}
-        ]
+    #Nouveau nœud pour la détection des marqueurs fiduciaires
+    markertracker_node = Node(
+        package='ros2_markertracker',
+        executable='markertracker_node',
+        output="screen",
+        namespace="/ros2_markertracker",
+        parameters=[{
+            "input_image_topic": "/rgb/image_rect_raw",
+            "publish_topic_image_result": True,
+            "path_to_camera_file": '/home/coro/ros2_ws/src/tool_box/camera_calibration/config/kinect.yaml',
+            "marker_length": 9.6,
+            "aruco_dictionary_id": "DICT_4X4_250",
+            "camera_frame_id": "rgb_camera_link",
+            "ignore_marker_ids_array": 17
+        }]
     )
 
     handeye_calibration_launch = IncludeLaunchDescription(
@@ -83,27 +81,9 @@ def generate_launch_description():
             'freehand_robot_movement': 'true',
             'robot_base_frame': 'base_link',
             'robot_effector_frame': 'link_6',
-            'tracking_base_frame': 'camera_base',
-            'tracking_marker_frame': 'aruco_marker'
+            'tracking_base_frame': 'rgb_camera_link',
+            'tracking_marker_frame': 'marker'
         }.items()
-    )
-
-    # Transformation de 'base_link' vers 'camera_base' (caméra Azure Kinect)
-    static_transform_publisher_base_link_to_camera_base = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_transform_publisher_base_link_to_camera_base',
-        arguments=[
-            '-0.2062',  # x
-            '-0.2086',  # y
-            '0.8843',   # z
-            '0.3666',      # yaw    (en radians)
-            '0.7854',   # pitch (en radians)
-            '0.2668',        # roll   (en radians)
-            'base_link',
-            'camera_base'
-        ],
-        output='log'
     )
 
     return LaunchDescription([
@@ -119,8 +99,7 @@ def generate_launch_description():
         camera_info_topic_arg,
         dsr_bringup2_launch,
         azure_kinect_driver_launch,
-        aruco_node,
-        pose_array_to_tf_node,
-        handeye_calibration_launch,
-        static_transform_publisher_base_link_to_camera_base
+        rectify_node,
+        markertracker_node,
+        handeye_calibration_launch
     ])

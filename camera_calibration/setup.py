@@ -21,7 +21,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'pose_array_to_tf = src.pose_array_to_tf:main'
+            'pose_array_to_tf = camera_calibration.pose_array_to_tf:main',
+            'rs_tf_computation_node = camera_calibration.rs_tf_computation_node:main'
         ],
     },
 )
