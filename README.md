@@ -9,10 +9,13 @@ To proceed to the calibration of the cameras, you will need a few packages, thre
 - [Real Sense camera](https://github.com/IntelRealSense/realsense-ros)
 - [Doosan robot](https://github.com/doosan-robotics/doosan-robot2)
 
-The two additionnal packages to install are :
+The two additionnal packages used in this package are :
 
 - [ros2_markertracker](https://github.com/Veilkrand/ros2_markertracker)
 - [ROS2 Hand eye calibration](https://github.com/giuschio/ros2_handeye_calibration)
+
+**IMPORTANT INFO** : The "ros2_markertracker" package has been modified and is already incorporated in the tool_box repo here. You should not git clone the repo,
+as opposed to the ROS2_Hand_eye_calibration package, which you need to install separately.
 
 ## Steps to calibrate the cameras
 
