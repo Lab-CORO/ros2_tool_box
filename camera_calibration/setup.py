@@ -22,7 +22,7 @@ setup(
     entry_points={
         'console_scripts': [
             'pose_array_to_tf = camera_calibration.pose_array_to_tf:main',
-            'rs_tf_computation_node = camera_calibration.rs_tf_computation_node:main'
+            'rs_tf_computation_node = camera_calibration.rs_tf_computation_node:main',
             'kinect_tf_computation_node = camera_calibration.kinect_tf_computation_node:main'
         ],
     },
