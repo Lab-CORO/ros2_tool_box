@@ -56,7 +56,7 @@ def generate_launch_description():
     markertracker_node = Node(
         package='ros2_markertracker',
         executable='markertracker_node',
-        output="screen",
+        # output="screen",
         namespace="/ros2_markertracker",
         parameters=[{
             "input_image_topic": "/rgb/image_rect_raw",

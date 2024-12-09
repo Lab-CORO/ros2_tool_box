@@ -304,7 +304,7 @@ class ProcessFramePubSub(Node):
             #                          camera_frame_id)
             result_tf = TransformStamped()
             result_tf.header.stamp = self.get_clock().now().to_msg()
-            result_tf.header.frame_id = 'camera_color_optical_frame'
+            result_tf.header.frame_id = self._camera_frame_id
             result_tf.child_frame_id = 'marker'
             result_tf.transform.translation.x = gate_pose.position.x
             result_tf.transform.translation.y = gate_pose.position.y
