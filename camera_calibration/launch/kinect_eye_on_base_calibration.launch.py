@@ -61,7 +61,7 @@ def generate_launch_description():
         parameters=[{
             "input_image_topic": "/rgb/image_rect_raw",
             "publish_topic_image_result": True,
-            "path_to_camera_file": '/home/coro/ros2_ws/src/tool_box/camera_calibration/config/kinect.yaml',
+            "camera_info_topic": '/rgb/camera_info',
             "marker_length": 9.6,
             "aruco_dictionary_id": "DICT_4X4_250",
             "camera_frame_id": "rgb_camera_link",
@@ -81,7 +81,7 @@ def generate_launch_description():
             'freehand_robot_movement': 'true',
             'robot_base_frame': 'base_link',
             'robot_effector_frame': 'link_6',
-            'tracking_base_frame': 'rgb_camera_link',
+            'tracking_base_frame': 'camera_base',
             'tracking_marker_frame': 'marker'
         }.items()
     )

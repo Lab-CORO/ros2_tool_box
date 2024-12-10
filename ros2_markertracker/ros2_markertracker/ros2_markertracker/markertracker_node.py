@@ -11,7 +11,7 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point, PoseWithCovarianceStamped, PoseArray, Pose, PoseStamped  #, Point32
-from sensor_msgs.msg import Image #, CameraInfo
+from sensor_msgs.msg import Image, CameraInfo
 
 # from tf.transformations import quaternion_from_euler, euler_from_quaternion, euler_from_matrix
 from ros2_markertracker.transformations import quaternion_from_euler
@@ -22,9 +22,12 @@ from tf2_ros import TransformBroadcaster, TransformListener, Buffer
 from geometry_msgs.msg import TransformStamped
 
 import math
+import numpy as np
 
 from ros2_markertracker_interfaces.msg import FiducialMarker, FiducialMarkerArray
 from ros2_markertracker.ArucoWrapper import ArucoWrapper
+from .wait_for_message import wait_for_message
+
 
 # ---
 # Ros2
@@ -108,8 +111,6 @@ class ProcessFramePubSub(Node):
         self.declare_parameter("camera_frame_id", "camera")
         self._camera_frame_id = self.get_parameter("camera_frame_id").get_parameter_value().string_value
 
-        # self.declare_parameter("camera_info_topic", "/camera/camera_info")
-        # info_topic = self.get_parameter("camera_info_topic").get_parameter_value().string_value
 
         self.declare_parameter("aruco_dictionary_id", "DICT_4X4_50")
         _aruco_dictionary_id = self.get_parameter("aruco_dictionary_id").get_parameter_value().string_value
@@ -117,17 +118,23 @@ class ProcessFramePubSub(Node):
         self.declare_parameter("path_to_camera_file", "calibration/camerav2_1280x720.yaml")
         _path_to_camera_file = self.get_parameter("path_to_camera_file").get_parameter_value().string_value
 
+        # get camera info from topic
+        self.declare_parameter("camera_info_topic", "/camera_info")
+        camera_info_topic = self.get_parameter("camera_info_topic").get_parameter_value().string_value
+        # wait for camera info
+        success, camera_info = wait_for_message(CameraInfo, self, camera_info_topic, 10)
+        
+        if success:
+            # get the intrinsic matrix and distortion coefficients from the camera info
+            _camera_matrix = np.reshape(np.array(camera_info.k), (3, 3))
+            _dist_coeffs = np.array(camera_info.d)
+        else:
+            self.get_logger().error("No camera info")
+
         # TODO: Setup all remain params for Aruco
 
         self.publish_topic_image_result = True
 
-
-        # Load camera file
-        self.get_logger().info(f'Loading camera file: {_path_to_camera_file}')
-        fs = cv2.FileStorage(_path_to_camera_file, cv2.FILE_STORAGE_READ)
-        _camera_matrix = fs.getNode("camera_matrix").mat()
-        _dist_coeffs = fs.getNode("distortion_coefficients").mat()
-        fs.release()
         assert(len(_camera_matrix) and len(_dist_coeffs))
         self.get_logger().debug(f'Camera Matrix: {_camera_matrix}')
         self.get_logger().debug(f'Dist Coeff: {_dist_coeffs}')
@@ -322,7 +329,6 @@ class ProcessFramePubSub(Node):
             #marker.pose_cov_stamped = self._create_pose_cov_stamped(marker, camera_frame_id, image_timestamp)
 
             marker_array.markers.append(gate_viz_marker)
-            print(gate_pose)
             pose_array.poses.append(gate_pose)
             gate_marker_array.marker.append(gate_marker)
 

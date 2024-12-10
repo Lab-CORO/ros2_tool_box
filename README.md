@@ -68,7 +68,7 @@ self.cam_to_color_tf.transform.rotation.w = # W rotation values
 ```
 
 ## Tips for accuracy
-
+    Wait for the stability of the marker's tf in rviz
     Maximize rotation between poses.
     Minimize the distance from the target to the camera of the tracking system.
     Minimize the translation between poses.

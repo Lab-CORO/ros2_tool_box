@@ -51,7 +51,7 @@ def generate_launch_description():
         parameters=[{
             "input_image_topic": "/camera/camera/color/image_rect_raw",
             "publish_topic_image_result": True,
-            "path_to_camera_file": '/home/coro/ros2_ws/src/tool_box/camera_calibration/config/rs.yaml',
+            "camera_info_topic": '/camera/camera/color/camera_info',
             "marker_length": 9.6,
             "aruco_dictionary_id": "DICT_4X4_250",
             "camera_frame_id": "camera_color_optical_frame",
